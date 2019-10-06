@@ -26,15 +26,19 @@ exports.fcmSend = functions.firestore
             .doc(`${document.lastsentmessageuser}`)
             .get().then(function(doc) {
                 if (doc.exists) {
-                    console.log('[  OK!  ] Create notification object.');
+                    console.log('[  OK!  ] Create notification object, initiated by ', doc.data().displayName, '.');
                     // create the notification
                     let message = 'Media received!';
                     if (document.lastsentmessagetype === 0) {
                         message = crypto.AES.decrypt(document.lastsentmessage.toString(), conversationID.toString()).toString(crypto.enc.Utf8);
                     }
+                    let sender = doc.data().displayName;
+                    if (document.isgroupchat) {
+                        sender = document.name + ' : ' + doc.data().displayName;
+                    }
                     const payload = {
                         notification: {
-                            title: doc.data().displayName,
+                            title: sender,
                             body: message,
                             icon: doc.data().photoURL
                         }
@@ -42,17 +46,31 @@ exports.fcmSend = functions.firestore
                     console.log('[  OK!  ] Send it to group or individual.');
                     // send it to group or individual
                     if (document.isgroupchat) {
-                        // admin.database()
-                        //     .ref(`/fcmTokens/${userId}`)
-                        //     .once('value')
-                        //     .then(token => token.val() )
-                        //     .then(userFcmToken => {
-                        //         return admin.messaging().sendToDevice(userFcmToken, payload)
-                        //     })
-                        //     .catch(err => {
-                        //         console.log(err);
-                        //     });
+                        console.log('[  OK!  ] Get multiple receiver ids.');
+                        // multiple receiver ids
+                        let receivers = [];
+                        document.participants.forEach(x => {
+                            if (x !== document.lastsentmessageuser) {
+                                receivers.push(x);
+                            }
+                        });
+                        console.log('[  OK!  ] Send toast to group.');
+                        // send toast message
+                        receivers.forEach(x => {
+                            admin.firestore().collection('tokens')
+                                .doc(`${x}`)
+                                .get()
+                                .then(x => {
+                                    if (x.exists) {
+                                        return admin.messaging().sendToDevice(x.data().token, payload);
+                                    }
+                                    return 0;
+                                }).catch(err => {
+                                console.log('[  ERR  ] Could not send toast to ', x, ': ', err);
+                            });
+                        });
                     } else {
+                        console.log('[  OK!  ] Get receiver id.');
                         // receiver id
                         let userId = document.participants[0];
                         if (userId === document.lastsentmessageuser) {
@@ -64,13 +82,16 @@ exports.fcmSend = functions.firestore
                             .doc(`${userId}`)
                             .get()
                             .then(x => {
-                                return admin.messaging().sendToDevice(x.data().token, payload);
+                                if (x.exists) {
+                                    return admin.messaging().sendToDevice(x.data().token, payload);
+                                }
+                                return 0;
                             }).catch(err => {
                             console.log('[  ERR  ] Could not send toast: ', err);
                         });
                     }
                 }
-                return null;
+                return 0;
             }).catch(function(error) {
                 console.log("[  ERR  ] Stop sending toast, could not get sender document:", error);
             });
