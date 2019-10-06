@@ -1,15 +1,5 @@
-/*
- const functions = require('firebase-functions');
- // Create and Deploy Your First Cloud Functions
- // https://firebase.google.com/docs/functions/write-firebase-functions
-
- exports.helloWorld = functions.https.onRequest((request, response) => {
-  response.send("Hello from Firebase!");
- });
-*/
 const functions = require('firebase-functions');
 const admin = require("firebase-admin");
-
 var crypto = require("crypto-js");
 
 admin.initializeApp();
@@ -61,10 +51,7 @@ exports.fcmSend = functions.firestore
                                 .doc(`${x}`)
                                 .get()
                                 .then(x => {
-                                    if (x.exists) {
-                                        return admin.messaging().sendToDevice(x.data().token, payload);
-                                    }
-                                    return 0;
+                                    return admin.messaging().sendToDevice(x.data().token, payload);
                                 }).catch(err => {
                                 console.log('[  ERR  ] Could not send toast to ', x, ': ', err);
                             });
@@ -82,16 +69,13 @@ exports.fcmSend = functions.firestore
                             .doc(`${userId}`)
                             .get()
                             .then(x => {
-                                if (x.exists) {
-                                    return admin.messaging().sendToDevice(x.data().token, payload);
-                                }
-                                return 0;
+                                return admin.messaging().sendToDevice(x.data().token, payload);
                             }).catch(err => {
                             console.log('[  ERR  ] Could not send toast: ', err);
                         });
                     }
                 }
-                return 0;
+                return null;
             }).catch(function(error) {
                 console.log("[  ERR  ] Stop sending toast, could not get sender document:", error);
             });
