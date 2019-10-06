@@ -2,6 +2,8 @@
 
 ## Setup Dev Environment
 
+**Very important**: please select our firebase project otherwise you will be uploading the functions to the wrong project.
+
 ```bash
 npm install -g firebase-tools
 firebase login
