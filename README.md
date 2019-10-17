@@ -1,6 +1,6 @@
 # ITRW322-Semester_Project-Firebase
 
-This is the firebase function for the [ITRW 322 instant messenger project](https://github.com/coenraadhuman/ITRW322-Semester_Project-Firebase).
+This is the firebase function for the [ITRW 322 instant messenger project](https://github.com/coenraadhuman/ITRW322-Semester_Project-Angular).
 
 ## Setup Dev Environment
 
